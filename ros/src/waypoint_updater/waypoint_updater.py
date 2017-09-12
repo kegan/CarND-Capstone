@@ -159,6 +159,7 @@ class WaypointUpdater(object):
         fwd = True
         if bwd_yaw_diff < fwd_yaw_diff:
             waypoints = waypoints[::-1]
+            waypoint_i = len(waypoints) - waypoint_i - 1
             fwd = False
 
         #rospy.logout('waypoint_i: %d, yaw %f, fwd_yaw %f, bwd_yaw %f, %s', waypoint_i, current_yaw, fwd_yaw, bwd_yaw, 'Forward'  if fwd else 'Backward')
