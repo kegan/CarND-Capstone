@@ -60,9 +60,8 @@ class Controller(object):
         delta_time = current_timestamp - self.timestamp
         timestamp = current_timestamp
 
-        # We need to convert current velocity to miles per hour so that
-        # we are working with the exact values as what is shown on the simulator
-        current_velocity = current_velocity / ONE_MPH
+        # Velocity is in meters per second
+        current_velocity = current_velocity
         velocity_error = target_velocity - current_velocity
 
         # Make sure we have a valid delta_time. We don't want to divide by zero.
