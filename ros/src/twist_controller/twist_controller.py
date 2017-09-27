@@ -9,7 +9,6 @@ from lowpass import LowPassFilter
 GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
 
-
 class Controller(object):
     """ Twist controller to predict throttle, brake, and steer."""
     def __init__(self, *args, **kwargs):
@@ -21,9 +20,6 @@ class Controller(object):
         self.vehicle_mass = kwargs.get('vehicle_mass')
         self.wheel_radius = kwargs.get('wheel_radius')
         self.fuel_mass = kwargs.get('fuel_capacity') * GAS_DENSITY # Assuming a full tank of gas
-
-        # A band of deceleration within which brakes don't apply (because it's too low)
-        self.brake_deadband = kwargs.get('brake_deadband')
 
         # Controllers
         self.throttle_pid = PID(kp=-0.147789, ki=0.00106112, kd=2.95378, mn=self.decel_limit, mx=self.accel_limit)
@@ -68,9 +64,6 @@ class Controller(object):
         # Since we're publishing at 50Hz, the expected delta_time should be around 0.02
         if delta_time > 0.01:
 
-            # Note: Somehow, a simple if/else produces smoother results than the pid controller.
-            #       kp, ki, and kd probably need more tuning. For now, this does the job.
-            # acceleration = self.throttle_pid.step(velocity_error, delta_time)
             if velocity_error > 0:
                 self.acceleration += 0.224
             elif velocity_error < 0 and velocity_error >= -5:
@@ -93,18 +86,11 @@ class Controller(object):
                 # * Distance from point of rotation = Wheel radius
                 # * Force = Mass * target deceleration
                 # * Mass = Vehicle mass + Fuel mass (assuming full tank)
-
-                # Only apply brakes if the required deceleration is significant enough
-                # (Greater than the specified brake_deadband)
                 deceleration = abs(acceleration)
-                if deceleration > self.brake_deadband:
-                    brake = (self.vehicle_mass + self.fuel_mass) * deceleration * self.wheel_radius
-                else:
-                    brake = 0.
+                brake = (self.vehicle_mass + self.fuel_mass) * deceleration * self.wheel_radius
 
                 throttle = 0.
 
-        # throttle = self.throttle_pid.step(velocity_error, delta_time)
         steer = self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_velocity)
 
         # Apply low pass filters to the throttle and brake values to eliminate jitter
@@ -125,28 +111,3 @@ class Controller(object):
         """
         self.timestamp = None
         self.throttle_pid.reset()
-
-    ##
-    ## Note: This function is no longer needed as we're using the yaw values from the waypoints.
-    ##
-    # def get_cte(self, pose, waypoints):
-    #     x_coords, y_coords = [], []
-    #     # Current car pose and head (used as waypoint 0)
-    #     roll, pitch, yaw = tf.transformations.euler_from_quaternion(
-    #         [pose.orientation.x, pose.orientation.y,
-    #          pose.orientation.z, pose.orientation.w])
-    #     heading_x = pose.position.x
-    #     heading_y = pose.position.y
-
-    #     for waypoint in waypoints:
-    #         # Calculate waypoint wrt current car position
-    #         waypoint_x = waypoint.pose.pose.position.x - heading_x
-    #         waypoint_y = waypoint.pose.pose.position.y - heading_y
-    #         x = waypoint_x * math.cos(0 - yaw) - waypoint_y * math.sin(0 - yaw)
-    #         y = waypoint_y * math.sin(0 - yaw) - waypoint_x * math.cos(0 - yaw)
-
-    #         x_coords.append(x)
-    #         y_coords.append(y)
-
-    #         coeffs = np.polyfit(x_coords, y_coords, 3)
-    #         self.cte = coeffs[0]
