@@ -48,12 +48,10 @@ class TLDetector(object):
         '''
         sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
         sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
-
-        config_string = rospy.get_param("/traffic_light_config")
-        self.config = yaml.load(config_string)
-
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
+        config_string = rospy.get_param('/traffic_light_config')
+        self.config = yaml.load(config_string)
 
         rospy.spin()
 
@@ -184,7 +182,7 @@ class TLDetector(object):
             light = self.light_dict.get(light_wp)
 
             # Found light_wp and if it is close enough.
-            if light and (light_wp - car_wp) < 60:
+            if light and (light_wp - car_wp) < 120 and (light_wp - car_wp) > 10:
                 state = self.get_light_state(light)
                 # --- TESTING ONLY
                 # state = light.state
