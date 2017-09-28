@@ -90,13 +90,13 @@ class WaypointUpdater(object):
 
             # Properties for tuning
             # Work out our target stop point and deceleration start point
-            how_far_before_traffic_light_is_the_stop_point = 50
+            how_far_before_traffic_light_is_the_stop_point = 30
             how_far_before_stop_point_to_begin_decel = 25
             #
             #
 
             total_waypoints = len(self.base_waypoints)
-            stop_point = (self.traffic - 50 + total_waypoints) % total_waypoints
+            stop_point = (self.traffic - how_far_before_traffic_light_is_the_stop_point + total_waypoints) % total_waypoints
 
             distance_to_stop_point = Helper.distance(self.base_waypoints, self.closest_waypoint, stop_point)
 
@@ -113,9 +113,9 @@ class WaypointUpdater(object):
                                                                           how_far_before_stop_point_to_begin_decel,
                                                                           total_waypoints)
 
-        rospy.logout("closest %d, traffic %d", self.closest_waypoint, self.traffic)
-        info = "speed for waypoint: " + ", ".join("%05.2f" % wp.twist.twist.linear.x for wp in final_waypoints[:10])
-        rospy.logout(info)
+        # rospy.logout("closest %d, traffic %d", self.closest_waypoint, self.traffic)
+        # info = "speed for waypoint: " + ", ".join("%05.2f" % wp.twist.twist.linear.x for wp in final_waypoints[:10])
+        # rospy.logout(info)
 
         return final_waypoints
 
