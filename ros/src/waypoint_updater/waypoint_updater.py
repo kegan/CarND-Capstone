@@ -90,28 +90,24 @@ class WaypointUpdater(object):
             # Work out our target stop point
             # (Our target stop position is actually 45 waypoints BEFORE the traffic light position)
             # Additional calculation is just to maintain cyclical indexing
+            num_waypoints_to_begin_deceleration = 30
             total_waypoints = len(self.base_waypoints)
-            stop_point = (self.traffic - 40 + total_waypoints) % total_waypoints
+            stop_point = (self.traffic - 45 + total_waypoints) % total_waypoints
 
             distance_to_stop_point = Helper.distance(self.base_waypoints, self.closest_waypoint, stop_point)
 
             # Check if we are close enough to start decelerating
             # We want to start decelerating 30 meters before
-            if distance_to_stop_point <= 30:
+            if distance_to_stop_point <= num_waypoints_to_begin_deceleration:
 
                 # If yes, adjust waypoint speeds so that we stop at the traffic light
                 final_waypoints = Helper.smooth_decel_till_stop_waypoints(self.base_waypoints,
                                                                           final_waypoints,
                                                                           self.closest_waypoint,
                                                                           stop_point,
-                                                                          distance_to_stop_point)
-
-                ## Commenting out and switching over to a modified version of this
-                # final_waypoints = Helper.decelerate_waypoints(self.base_waypoints,
-                #                                             final_waypoints,
-                #                                             self.closest_waypoint,
-                #                                             self.traffic,
-                #                                             DISTANCE_STOP_AT_TRAFFIC)
+                                                                          distance_to_stop_point,
+                                                                          num_waypoints_to_begin_deceleration,
+                                                                          total_waypoints)
 
         # rospy.logout("closest %d, traffic %d", self.closest_waypoint, self.traffic)
         # info = "speed for waypoint: " + ", ".join("%05.2f" % wp.twist.twist.linear.x for wp in final_waypoints[:10])
