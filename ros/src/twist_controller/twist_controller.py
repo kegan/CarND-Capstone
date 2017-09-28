@@ -112,6 +112,6 @@ class Controller(object):
 
         steer = self.steer_filter.filt(steer)
 
-        # rospy.logout('Throttle=%f,Brake=%f,Steer=%f', throttle, brake, steer)
+        # rospy.logout('Throttle=%f, Brake=%f, Steer=%f, Acceleration=%f', throttle, brake, steer, self.acceleration)
 
         return throttle, brake, steer
