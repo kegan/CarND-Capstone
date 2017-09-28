@@ -69,12 +69,12 @@ class Controller(object):
                 self.acceleration = 1.
             elif velocity_error > 2.5:
                 self.acceleration += 0.224
-                self.acceleration = min(self.acceleration, 1)
+                self.acceleration = min(self.acceleration, self.accel_limit)
             elif velocity_error >= 0:
                 self.acceleration = 0.
             elif velocity_error > -10:
                 self.acceleration -= 0.224
-                self.acceleration = max(self.acceleration,-1)
+                self.acceleration = max(self.acceleration,self.decel_limit)
             else:
                 if self.acceleration > 0: self.acceleration = 0
                 self.acceleration = -1
@@ -102,7 +102,7 @@ class Controller(object):
         steer = self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_velocity)
 
         # Apply low pass filters to the throttle and brake values to eliminate jitter
-        throttle = min(max(self.throttle_filter.filt(throttle), self.decel_limit), self.accel_limit)
+        throttle = min(max(self.throttle_filter.filt(throttle), 0), self.accel_limit)
 
         # Only apply smoothing if we are actually braking        
         if brake != 0.0:
