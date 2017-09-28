@@ -188,8 +188,7 @@ def smooth_decel_till_stop_waypoints(base_waypoints, final_waypoints, closest_wa
     # Calculate our deceleration start and end waypoint start and end ids
     # Easier to work out the logic we need this way
     decel_stop_id = stop_waypoint_id
-    decel_start_id = stop_waypoint_id - num_waypoints_to_begin_deceleration
-    # if decel_start_id < 0: decel_start_id += total_waypoints
+    decel_start_id = stop_waypoint_id - num_waypoints_to_begin_deceleration    
     
     final_waypoints_start_id = closest_waypoint_id
     final_waypoints_stop_id = (closest_waypoint_id + len(final_waypoints))
@@ -199,7 +198,7 @@ def smooth_decel_till_stop_waypoints(base_waypoints, final_waypoints, closest_wa
 
     # Calculate our deceleration (before mapping to final waypoints)
     # Interpolate across 30 waypoints
-    ptsx = [decel_start_id, decel_stop_id - 3, decel_stop_id]
+    ptsx = [decel_start_id, decel_stop_id / 2, decel_stop_id]
     ptsy = [start_speed, 0, 0]
     interpolated_speed = interp1d(ptsx, ptsy, kind='linear', fill_value='extrapolate')
 

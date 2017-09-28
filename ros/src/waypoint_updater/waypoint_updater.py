@@ -87,18 +87,22 @@ class WaypointUpdater(object):
 
         # If we have a traffic light ahead
         if self.traffic != -1:
-            # Work out our target stop point
-            # (Our target stop position is actually 45 waypoints BEFORE the traffic light position)
-            # Additional calculation is just to maintain cyclical indexing
-            num_waypoints_to_begin_deceleration = 30
+
+            # Properties for tuning
+            # Work out our target stop point and deceleration start point
+            how_far_before_traffic_light_is_the_stop_point = 50
+            how_far_before_stop_point_to_begin_decel = 25
+            #
+            #
+
             total_waypoints = len(self.base_waypoints)
-            stop_point = (self.traffic - 45 + total_waypoints) % total_waypoints
+            stop_point = (self.traffic - 50 + total_waypoints) % total_waypoints
 
             distance_to_stop_point = Helper.distance(self.base_waypoints, self.closest_waypoint, stop_point)
 
             # Check if we are close enough to start decelerating
             # We want to start decelerating 30 meters before
-            if distance_to_stop_point <= num_waypoints_to_begin_deceleration:
+            if distance_to_stop_point <= how_far_before_stop_point_to_begin_decel:
 
                 # If yes, adjust waypoint speeds so that we stop at the traffic light
                 final_waypoints = Helper.smooth_decel_till_stop_waypoints(self.base_waypoints,
@@ -106,12 +110,12 @@ class WaypointUpdater(object):
                                                                           self.closest_waypoint,
                                                                           stop_point,
                                                                           distance_to_stop_point,
-                                                                          num_waypoints_to_begin_deceleration,
+                                                                          how_far_before_stop_point_to_begin_decel,
                                                                           total_waypoints)
 
-        # rospy.logout("closest %d, traffic %d", self.closest_waypoint, self.traffic)
-        # info = "speed for waypoint: " + ", ".join("%05.2f" % wp.twist.twist.linear.x for wp in final_waypoints[:10])
-        # rospy.logout(info)
+        rospy.logout("closest %d, traffic %d", self.closest_waypoint, self.traffic)
+        info = "speed for waypoint: " + ", ".join("%05.2f" % wp.twist.twist.linear.x for wp in final_waypoints[:10])
+        rospy.logout(info)
 
         return final_waypoints
 
