@@ -103,8 +103,6 @@ class DBWNode(object):
                         angular_velocity=self.twist.angular.z
                     )
                     self.publish(throttle, brake, steer)
-                else:
-                    self.controller.reset()
             rate.sleep()
 
     def publish(self, throttle, brake, steer):

@@ -22,7 +22,6 @@ class Controller(object):
         self.fuel_mass = kwargs.get('fuel_capacity') * GAS_DENSITY # Assuming a full tank of gas
 
         # Controllers
-        self.throttle_pid = PID(kp=-0.147789, ki=0.00106112, kd=2.95378, mn=self.decel_limit, mx=self.accel_limit)
         self.yaw_controller = YawController(
             wheel_base=kwargs.get('wheel_base'),
             steer_ratio=kwargs.get('steer_ratio'),
@@ -60,16 +59,25 @@ class Controller(object):
         current_velocity = current_velocity
         velocity_error = target_velocity - current_velocity
 
+
         # Make sure we have a valid delta_time. We don't want to divide by zero.
         # Since we're publishing at 50Hz, the expected delta_time should be around 0.02
         if delta_time > 0.01:
 
-            if velocity_error > 0:
+            if velocity_error > 10:
+                if self.acceleration < 0: self.acceleration = 0
+                self.acceleration = 1.
+            elif velocity_error > 2.5:
                 self.acceleration += 0.224
-            elif velocity_error < 0 and velocity_error >= -5:
-                self.acceleration = 0
-            elif velocity_error < -5:
+                self.acceleration = min(self.acceleration, 1)
+            elif velocity_error >= 0:
+                self.acceleration = 0.
+            elif velocity_error > -10:
                 self.acceleration -= 0.224
+                self.acceleration = max(self.acceleration,-1)
+            else:
+                if self.acceleration > 0: self.acceleration = 0
+                self.acceleration = -1
 
             acceleration = self.acceleration
 
@@ -91,23 +99,21 @@ class Controller(object):
 
                 throttle = 0.
 
+        print("linear vel: %s current vel: %s, error: %s, acceleration: %s" % (linear_velocity, current_velocity, velocity_error, self.acceleration))
+
         steer = self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_velocity)
 
         # Apply low pass filters to the throttle and brake values to eliminate jitter
         throttle = min(max(self.throttle_filter.filt(throttle), self.decel_limit), self.accel_limit)
+
+        # Only apply smoothing if we are actually braking        
         if brake != 0.0:
             brake = self.brake_filter.filt(brake)
+        else:
+            self.brake_filter.reset()
 
         steer = self.steer_filter.filt(steer)
 
         # rospy.logout('Throttle=%f,Brake=%f,Steer=%f', throttle, brake, steer)
 
         return throttle, brake, steer
-
-    def reset(self):
-        """Reset the PIDs
-
-        Reset all the settings when user changes from auto to manual driving
-        """
-        self.timestamp = None
-        self.throttle_pid.reset()
