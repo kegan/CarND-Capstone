@@ -33,7 +33,6 @@ class TLDetector(object):
         self.state_count = 0
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
-        self.closest_waypoint = None
 
         self.image_date = datetime.now()
 
@@ -62,9 +61,6 @@ class TLDetector(object):
     def waypoints_cb(self, msg):
         self.waypoints = msg.waypoints
         self.waypoints_sub.unregister()
-
-    def closest_waypoint_cb(self, msg):
-        self.closest_waypoint = int(msg.data)
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
@@ -170,10 +166,8 @@ class TLDetector(object):
         """
         light_positions = self.config['stop_line_positions']
 
-        #if(self.pose and self.waypoints and self.lights and self.light_waypoints and self.light_dict):
-        if self.closest_waypoint and self.waypoints and self.lights and self.light_waypoints and self.light_dict:
-            #car_wp = self.get_closest_waypoint(self.pose)
-            car_wp = self.closest_waypoint
+        if(self.pose and self.waypoints and self.lights and self.light_waypoints and self.light_dict):
+            car_wp = self.get_closest_waypoint(self.pose)
 
             # --- Determine the next traffice light in waypoint.
             light = None
