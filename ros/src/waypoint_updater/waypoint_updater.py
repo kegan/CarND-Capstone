@@ -36,6 +36,7 @@ class WaypointUpdater(object):
 
         # Publishers
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=2)
+        self.closest_waypoint_pub = rospy.Publisher('closest_waypoint', Int32, queue_size=1)
 
         self.base_waypoints = None
         self.current_pose = None
@@ -84,6 +85,8 @@ class WaypointUpdater(object):
                                                                              self.base_waypoints,
                                                                              self.closest_waypoint,
                                                                              LOOKAHEAD_WPS)
+
+        self.closest_waypoint_pub.publish(Int32(self.closest_waypoint))
 
         # If we have a traffic light ahead
         if self.traffic != -1:
