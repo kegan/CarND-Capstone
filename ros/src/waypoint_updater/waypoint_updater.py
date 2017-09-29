@@ -36,7 +36,6 @@ class WaypointUpdater(object):
 
         # Publishers
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=2)
-        self.closest_waypoint_pub = rospy.Publisher('closest_waypoint', Int32, queue_size=1)
 
         self.base_waypoints = None
         self.current_pose = None
@@ -86,8 +85,6 @@ class WaypointUpdater(object):
                                                                              self.closest_waypoint,
                                                                              LOOKAHEAD_WPS)
 
-        self.closest_waypoint_pub.publish(Int32(self.closest_waypoint))
-
         # If we have a traffic light ahead
         if self.traffic != -1:
 
@@ -95,12 +92,6 @@ class WaypointUpdater(object):
             # Work out our target stop point and deceleration start point
             how_far_before_traffic_light_is_the_stop_point = 38            
             how_far_before_stop_point_to_begin_decel = 30
-
-            speed_limit = rospy.get_param('~velocity')
-            if speed_limit > 10:
-                how_far_before_stop_point_to_begin_decel += speed_limit - 10
-            #
-            #
 
             total_waypoints = len(self.base_waypoints)
             stop_point = (self.traffic - how_far_before_traffic_light_is_the_stop_point + total_waypoints) % total_waypoints
