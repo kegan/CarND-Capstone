@@ -90,7 +90,7 @@ class WaypointUpdater(object):
 
         # If we have a traffic light ahead
         if self.traffic != -1:
-            stop_point_lookup = {318:281, 784:741, 2095:2029, 2625:2567, 6322:6281, 7036:6995, 8565:8528, 9773:9715}
+            stop_point_lookup = {318:283, 784:741, 2095:2029, 2625:2567, 6322:6281, 7036:6995, 8565:8528, 9773:9715}
 
             # Properties for tuning
             # Work out our target stop point and deceleration start point
