@@ -113,9 +113,9 @@ class WaypointUpdater(object):
                                                                           how_far_before_stop_point_to_begin_decel,
                                                                           total_waypoints)
 
-        # rospy.logout("closest %d, traffic %d", self.closest_waypoint, self.traffic)
-        # info = "speed for waypoint: " + ", ".join("%05.2f" % wp.twist.twist.linear.x for wp in final_waypoints[:10])
-        # rospy.logout(info)
+        rospy.logout("closest %d, traffic %d", self.closest_waypoint, self.traffic)
+        info = "speed for waypoint: " + ", ".join("%05.2f" % wp.twist.twist.linear.x for wp in final_waypoints[:10])
+        rospy.logout(info)
 
         return final_waypoints
 
