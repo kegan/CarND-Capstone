@@ -31,7 +31,7 @@ class Controller(object):
         )
         self.throttle_filter = LowPassFilter(0.96, 1.0)
         self.brake_filter = LowPassFilter(0.96, 1.0)
-        self.steer_filter = LowPassFilter(0.96, 1.0)
+        self.steer_filter = LowPassFilter(0.9, 1.0)
 
         self.acceleration = 0
         self.timestamp = None
@@ -82,14 +82,18 @@ class Controller(object):
 
             # self.acceleration -= 0.01
 
-
-            if velocity_error >= 1.0:
+            if velocity_error >= 10.0:
+                self.acceleration = 1.   
+            elif velocity_error >= 1.0:
+                if self.acceleration < 0: self.acceleration = 0
                 self.acceleration += 0.224
             elif velocity_error >= 0.0:
                 self.acceleration = 0
             elif velocity_error >= -0.5:
+                if self.acceleration > 0: self.acceleration = 0
                 self.acceleration -= 0.0001
             else:
+                if self.acceleration > 0: self.acceleration = 0
                 self.acceleration -= 0.224
 
             self.acceleration = max(min(self.acceleration, self.accel_limit), self.decel_limit)
@@ -130,5 +134,6 @@ class Controller(object):
 
         rospy.logout('Throttle=%f, Brake=%f, Steer=%f', throttle, brake, steer)
         rospy.logout('TargetVelocity=%f, CurrentVelocity=%f, VelocityError=%f, Acceleration=%f', target_velocity, current_velocity, velocity_error, self.acceleration)
+        rospy.logout('')
 
         return throttle, brake, steer

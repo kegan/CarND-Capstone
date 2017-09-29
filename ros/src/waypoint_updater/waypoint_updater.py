@@ -90,8 +90,12 @@ class WaypointUpdater(object):
 
             # Properties for tuning
             # Work out our target stop point and deceleration start point
-            how_far_before_traffic_light_is_the_stop_point = 30
-            how_far_before_stop_point_to_begin_decel = 25
+            how_far_before_traffic_light_is_the_stop_point = 38            
+            how_far_before_stop_point_to_begin_decel = 30
+
+            speed_limit = rospy.get_param('~velocity')
+            if speed_limit > 10:
+                how_far_before_stop_point_to_begin_decel += speed_limit - 10
             #
             #
 
@@ -101,7 +105,6 @@ class WaypointUpdater(object):
             distance_to_stop_point = Helper.distance(self.base_waypoints, self.closest_waypoint, stop_point)
 
             # Check if we are close enough to start decelerating
-            # We want to start decelerating 30 meters before
             if distance_to_stop_point <= how_far_before_stop_point_to_begin_decel:
 
                 # If yes, adjust waypoint speeds so that we stop at the traffic light

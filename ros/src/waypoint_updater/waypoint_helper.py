@@ -201,7 +201,7 @@ def smooth_decel_till_stop_waypoints(base_waypoints, final_waypoints, closest_wa
     ptsx = [decel_start_id, decel_stop_id - 5, decel_stop_id]
     ptsy = [start_speed, 0, 0]
     interpolated_speed = interp1d(ptsx, ptsy, kind='linear', fill_value='extrapolate')
-
+    
     # Case #1: In the case where the final waypoints are AFTER the stop point (overshot)
     # Zero out the speed of all future waypoints (as long as the traffic light is red)
     if (distance_to_stop_point == 0) and (decel_stop_id < final_waypoints_start_id):
@@ -230,8 +230,11 @@ def smooth_decel_till_stop_waypoints(base_waypoints, final_waypoints, closest_wa
             new_wp = clone_waypoint(wp)
             decelerated_waypoints.append(new_wp)            
         
-        for i in range(i_start, i_stop):
-            decelerated_waypoints[(i - i_start) + final_waypoints_offset].twist.twist.linear.x = max(interpolated_speed(i), 0)
+        for i in range(i_start, final_waypoints_stop_id):
+            if i < i_stop:
+                decelerated_waypoints[(i - i_start) + final_waypoints_offset].twist.twist.linear.x = max(interpolated_speed(i), 0)
+            else:
+                decelerated_waypoints[(i - i_start) + final_waypoints_offset].twist.twist.linear.x = 0
 
         return decelerated_waypoints
 
