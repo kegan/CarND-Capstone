@@ -38,12 +38,7 @@ class TLDetector(object):
         self.image_date = datetime.now()
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-<<<<<<< HEAD
-        sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        self.closest_waypoint_sub = rospy.Subscriber('/closest_waypoint', Int32, self.closest_waypoint_cb)
-=======
         self.waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
->>>>>>> shernshiou/master
 
         '''
         /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
