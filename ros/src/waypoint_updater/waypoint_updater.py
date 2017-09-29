@@ -90,16 +90,18 @@ class WaypointUpdater(object):
 
         # If we have a traffic light ahead
         if self.traffic != -1:
-
-            # Properties for tuning
-            # Work out our target stop point and deceleration start point
-            how_far_before_traffic_light_is_the_stop_point = 30
+            
+            stop_point_lookup = {318:283, 784:741, 2095:2029, 2625:2567, 6322:6281, 7036:6995, 8565:8528, 9773:9715}
+            
+            how_far_before_traffic_light_is_the_stop_point = 35
             how_far_before_stop_point_to_begin_decel = 25
-            #
-            #
-
+            
             total_waypoints = len(self.base_waypoints)
-            stop_point = (self.traffic - how_far_before_traffic_light_is_the_stop_point + total_waypoints) % total_waypoints
+
+            if self.traffic in stop_point_lookup:
+                stop_point = stop_point_lookup[self.traffic]
+            else:
+                stop_point = (self.traffic - how_far_before_traffic_light_is_the_stop_point + total_waypoints) % total_waypoints
 
             distance_to_stop_point = Helper.distance(self.base_waypoints, self.closest_waypoint, stop_point)
 

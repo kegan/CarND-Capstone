@@ -33,13 +33,11 @@ class TLDetector(object):
         self.state_count = 0
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
-        self.closest_waypoint = None
 
         self.image_date = datetime.now()
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        self.closest_waypoint_sub = rospy.Subscriber('/closest_waypoint', Int32, self.closest_waypoint_cb)
+        self.waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         '''
         /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
@@ -48,7 +46,7 @@ class TLDetector(object):
         simulator. When testing on the vehicle, the color state will not be available. You'll need to
         rely on the position of the light and the camera image to predict it.
         '''
-        sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
+        self.traffic_lights_sub = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
         sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
@@ -62,9 +60,7 @@ class TLDetector(object):
 
     def waypoints_cb(self, msg):
         self.waypoints = msg.waypoints
-
-    def closest_waypoint_cb(self, msg):
-        self.closest_waypoint = int(msg.data)
+        self.waypoints_sub.unregister()
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
@@ -75,6 +71,7 @@ class TLDetector(object):
                 alight_wp = self.get_closest_waypoint(alight.pose.pose)
                 self.light_dict[alight_wp] = alight
             self.light_waypoints = sorted(self.light_dict.keys())
+            self.traffic_lights_sub.unregister()
 
     def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
@@ -87,7 +84,7 @@ class TLDetector(object):
         # Skip certain images to lower the processing rate.
         # TODO: Tune skip time.
         now = datetime.now()
-        if now - self.image_date < timedelta(milliseconds=500):
+        if now - self.image_date < timedelta(milliseconds=350):
             # Assume same as previous.
             light_wp, state = self.last_wp, self.state
         else:
@@ -127,12 +124,14 @@ class TLDetector(object):
         """
         closest_gap = float('inf')
         closest_idx = 0
+
         for idx, awp in enumerate(self.waypoints):
             agap = (awp.pose.pose.position.x - pose.position.x)**2 + \
                    (awp.pose.pose.position.y - pose.position.y)**2
             if agap < closest_gap:
                 closest_gap = agap
                 closest_idx = idx
+
         return closest_idx
 
     def get_light_state(self, light):
@@ -167,10 +166,8 @@ class TLDetector(object):
         """
         light_positions = self.config['stop_line_positions']
 
-        #if(self.pose and self.waypoints and self.lights and self.light_waypoints and self.light_dict):
-        if self.closest_waypoint and self.waypoints and self.lights and self.light_waypoints and self.light_dict:
-            #car_wp = self.get_closest_waypoint(self.pose)
-            car_wp = self.closest_waypoint
+        if(self.pose and self.waypoints and self.lights and self.light_waypoints and self.light_dict):
+            car_wp = self.get_closest_waypoint(self.pose)
 
             # --- Determine the next traffice light in waypoint.
             light = None
@@ -189,8 +186,11 @@ class TLDetector(object):
             light = self.light_dict.get(light_wp)
 
             # Found light_wp and if it is close enough.
-            if light and (light_wp - car_wp) < 120 and (light_wp - car_wp) > 10:
+            # if light:
+            #     print(light_wp - car_wp)
+            if light and (light_wp - car_wp) < 200 and (light_wp - car_wp) > 30:
                 state = self.get_light_state(light)
+                # print(state)
                 # --- TESTING ONLY
                 # state = light.state
                 # --- TESTING ONLY

@@ -198,8 +198,8 @@ def smooth_decel_till_stop_waypoints(base_waypoints, final_waypoints, closest_wa
 
     # Calculate our deceleration (before mapping to final waypoints)
     # Interpolate across 30 waypoints
-    ptsx = [decel_start_id, decel_stop_id / 2, decel_stop_id]
-    ptsy = [start_speed, 0, 0]
+    ptsx = [decel_start_id, decel_stop_id]
+    ptsy = [start_speed, 0]
     interpolated_speed = interp1d(ptsx, ptsy, kind='linear', fill_value='extrapolate')
 
     # Case #1: In the case where the final waypoints are AFTER the stop point (overshot)
