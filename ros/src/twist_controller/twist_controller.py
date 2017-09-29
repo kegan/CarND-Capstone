@@ -31,7 +31,7 @@ class Controller(object):
         )
         self.throttle_filter = LowPassFilter(0.96, 1.0)
         self.brake_filter = LowPassFilter(0.96, 1.0)
-        self.steer_filter = LowPassFilter(0.9, 1.0)
+        self.steer_filter = LowPassFilter(0.96, 1.0)
 
         self.acceleration = 0
         self.timestamp = None
@@ -55,48 +55,30 @@ class Controller(object):
         delta_time = current_timestamp - self.timestamp
         timestamp = current_timestamp
 
-        # Convert all our velocities to miles pre hour
-        current_velocity = current_velocity / ONE_MPH
-        target_velocity = target_velocity * 3.6
-
+        # Velocity is in meters per second
+        current_velocity = current_velocity
         velocity_error = target_velocity - current_velocity
+
 
         # Make sure we have a valid delta_time. We don't want to divide by zero.
         # Since we're publishing at 50Hz, the expected delta_time should be around 0.02
         if delta_time > 0.01:
 
-            # if velocity_error > 5:
-            #     # if self.acceleration < 0: self.acceleration = 0
-            #     self.acceleration = 1.
-            # elif velocity_error > 3.0:
-            #     self.acceleration += 0.224
-            #     self.acceleration = min(self.acceleration, self.accel_limit)
-            # elif velocity_error >= 0:
-            #     self.acceleration = 0.
-            # elif velocity_error > -5.0:
-            #     self.acceleration -= 0.224
-            #     self.acceleration = max(self.acceleration, -1)
-            # else:
-            #     # if self.acceleration > 0: self.acceleration = 0
-            #     self.acceleration = -1
-
-            # self.acceleration -= 0.01
-
-            if velocity_error >= 10.0:
-                self.acceleration = 1.   
-            elif velocity_error >= 1.0:
+            if velocity_error > 10:
                 if self.acceleration < 0: self.acceleration = 0
+                self.acceleration = 1.
+            elif velocity_error > 2.5:
                 self.acceleration += 0.224
-            elif velocity_error >= 0.0:
-                self.acceleration = 0
-            elif velocity_error >= -0.5:
-                if self.acceleration > 0: self.acceleration = 0
-                self.acceleration -= 0.0001
+                self.acceleration = min(self.acceleration, self.accel_limit)
+            elif velocity_error >= 0:
+                self.acceleration = 0.
+            elif velocity_error > -10:
+                self.acceleration -= 0.224
+                self.acceleration = max(self.acceleration,self.decel_limit)
             else:
                 if self.acceleration > 0: self.acceleration = 0
-                self.acceleration -= 0.224
+                self.acceleration = -1
 
-            self.acceleration = max(min(self.acceleration, self.accel_limit), self.decel_limit)
             acceleration = self.acceleration
 
             # Throttle when acceleration is positive
@@ -118,22 +100,18 @@ class Controller(object):
                 throttle = 0.
 
         steer = self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_velocity)
-        steer = self.steer_filter.filt(steer)
 
         # Apply low pass filters to the throttle and brake values to eliminate jitter
-        # Also, only apply smoothing if we are actually throttling or braking
-        if acceleration > 0.0:
-            throttle = min(max(self.throttle_filter.filt(throttle), 0), self.accel_limit)
-        else:
-            self.throttle_filter.reset()
+        throttle = min(max(self.throttle_filter.filt(throttle), 0), self.accel_limit)
 
-        if acceleration < 0.0:
+        # Only apply smoothing if we are actually braking        
+        if brake != 0.0:
             brake = self.brake_filter.filt(brake)
         else:
             self.brake_filter.reset()
 
-        rospy.logout('Throttle=%f, Brake=%f, Steer=%f', throttle, brake, steer)
-        rospy.logout('TargetVelocity=%f, CurrentVelocity=%f, VelocityError=%f, Acceleration=%f', target_velocity, current_velocity, velocity_error, self.acceleration)
-        rospy.logout('')
+        steer = self.steer_filter.filt(steer)
+
+        # rospy.logout('Throttle=%f, Brake=%f, Steer=%f, Acceleration=%f', throttle, brake, steer, self.acceleration)
 
         return throttle, brake, steer

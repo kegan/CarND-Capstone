@@ -36,6 +36,7 @@ class WaypointUpdater(object):
 
         # Publishers
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=2)
+        self.closest_waypoint_pub = rospy.Publisher('closest_waypoint', Int32, queue_size=1)
 
         self.base_waypoints = None
         self.current_pose = None
@@ -85,13 +86,17 @@ class WaypointUpdater(object):
                                                                              self.closest_waypoint,
                                                                              LOOKAHEAD_WPS)
 
+        self.closest_waypoint_pub.publish(Int32(self.closest_waypoint))
+
         # If we have a traffic light ahead
         if self.traffic != -1:
 
             # Properties for tuning
             # Work out our target stop point and deceleration start point
-            how_far_before_traffic_light_is_the_stop_point = 38            
-            how_far_before_stop_point_to_begin_decel = 30
+            how_far_before_traffic_light_is_the_stop_point = 30
+            how_far_before_stop_point_to_begin_decel = 25
+            #
+            #
 
             total_waypoints = len(self.base_waypoints)
             stop_point = (self.traffic - how_far_before_traffic_light_is_the_stop_point + total_waypoints) % total_waypoints
@@ -99,6 +104,7 @@ class WaypointUpdater(object):
             distance_to_stop_point = Helper.distance(self.base_waypoints, self.closest_waypoint, stop_point)
 
             # Check if we are close enough to start decelerating
+            # We want to start decelerating 30 meters before
             if distance_to_stop_point <= how_far_before_stop_point_to_begin_decel:
 
                 # If yes, adjust waypoint speeds so that we stop at the traffic light
@@ -110,9 +116,9 @@ class WaypointUpdater(object):
                                                                           how_far_before_stop_point_to_begin_decel,
                                                                           total_waypoints)
 
-        rospy.logout("closest %d, traffic %d", self.closest_waypoint, self.traffic)
-        info = "speed for waypoint: " + ", ".join("%05.2f" % wp.twist.twist.linear.x for wp in final_waypoints[:10])
-        rospy.logout(info)
+        # rospy.logout("closest %d, traffic %d", self.closest_waypoint, self.traffic)
+        # info = "speed for waypoint: " + ", ".join("%05.2f" % wp.twist.twist.linear.x for wp in final_waypoints[:10])
+        # rospy.logout(info)
 
         return final_waypoints
 
