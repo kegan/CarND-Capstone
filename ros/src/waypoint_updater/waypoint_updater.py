@@ -90,8 +90,8 @@ class WaypointUpdater(object):
 
             # Properties for tuning
             # Work out our target stop point and deceleration start point
-            how_far_before_traffic_light_is_the_stop_point = 30
-            how_far_before_stop_point_to_begin_decel = 25
+            how_far_before_traffic_light_is_the_stop_point = 30 +6
+            how_far_before_stop_point_to_begin_decel = 25 +8
             #
             #
 
