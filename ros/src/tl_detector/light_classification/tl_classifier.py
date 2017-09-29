@@ -30,7 +30,7 @@ class TLClassifier(object):
         for jdx, contour in enumerate(contours):
             # Check ratio and size.
             x,y,w,h = cv2.boundingRect(contour)
-            ok_ratio = (h / w > 0.85) and (h / w < 1.4)
+            ok_ratio = (h / float(w) > 0.85) and (h / float(w) < 1.4)
             ok_size = (w > 5) and (h > 5)
 
             if ok_ratio and ok_size:
@@ -50,8 +50,8 @@ class TLClassifier(object):
 
     def preprocess(self, input_img):
         # img = cv2.resize(input_img, (800, 600), interpolation=cv2.INTER_CUBIC)
-        # out = cv2.bilateralFilter(img,11,75,75)
-        out = input_img
+        out = cv2.bilateralFilter(input_img,11,75,75)
+        # out = input_img
         # ----- RGB
         rgb = cv2.cvtColor(out, cv2.COLOR_BGR2RGB)
 
